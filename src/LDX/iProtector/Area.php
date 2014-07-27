@@ -1,7 +1,5 @@
 <?php
 namespace LDX\iProtector;
-use pocketmine\Player;
-use pocketmine\math\Vector3;
 class Area {
   public function __construct($data) {
     $this->name = $data["name"];
@@ -9,6 +7,7 @@ class Area {
     $this->pos1 = $data["pos1"];
     $this->pos2 = $data["pos2"];
     $this->plugin = $data["plugin"];
+    $this->plugin->registerArea($this);
   }
   public function getName() {
     return $this->name;
@@ -30,8 +29,18 @@ class Area {
   public function getPos() {
     return array($this->pos1,$this->pos2);
   }
-  public function __destruct() {
-    $this->plugin->saveArea($this);
+  public function getData() {
+    return array($this->name,$this->flags,$this->getPos());
   }
+  public function save() {
+    $name = strtolower($this->getName());
+    file_put_contents($this->plugin->getDataFolder() . "areas/$name.yml",yaml_emit($this->getData()));
+  }
+  public function delete() {
+    $name = $this->getName();
+    unset($this->plugin->areas[$name]);
+    unlink($this->plugin->getDataFolder() . "areas/$name.yml");
+  }
+  public function __destruct() { }
 }
 ?>
