@@ -45,7 +45,7 @@ permissions:
             description: "Allows access to breaking blocks in iProtector areas."
             default: op
           iprotector.exempt.pvp:
-            description: "Allows access to pvp in iProtector areas."
+            description: "Allows access to PVP in iProtector areas."
             default: op
           iprotector.exempt.chest:
             description: "Allows access to opening chests in iProtector areas."
