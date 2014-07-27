@@ -1,4 +1,0 @@
-iProtector
-==========
-
-A PocketMine plugin

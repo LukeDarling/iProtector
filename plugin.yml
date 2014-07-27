@@ -1,0 +1,52 @@
+name: iProtector
+main: LDX\iProtector\Main
+version: Beta
+api: [1.1.0]
+load: POSTWORLD
+author: LDX
+commands:
+  protect:
+    description: "Allows you to manage protected areas."
+    usage: "/protect <pos1/pos2/create/flag/delete>"
+    permission: iprotector.command.protect
+permissions:
+  iprotector:
+    description: "Allows access to all iProtector features."
+    default: op
+    children:
+      iprotector.command:
+        description: "Allows access to all iProtector commands."
+        default: op
+        children:
+          iprotector.command.protect:
+            description: "Allows access to the protect command."
+            default: op
+            children:
+              iprotector.command.protect.pos1:
+                description: "Allows access to the iProtector pos1 subcommand."
+                default: op
+              iprotector.command.protect.pos2:
+                description: "Allows access to the iProtector pos2 subcommand."
+                default: op
+              iprotector.command.protect.create:
+                description: "Allows access to the iProtector create subcommand."
+                default: op
+              iprotector.command.protect.flag:
+                description: "Allows access to the iProtector flag subcommand."
+                default: op
+              iprotector.command.protect.delete:
+                description: "Allows access to the iProtector delete subcommand."
+                default: op
+      iprotector.exempt:
+        description: "Allows access to all iProtector areas."
+        default: op
+        children:
+          iprotector.exempt.edit:
+            description: "Allows access to breaking blocks in iProtector areas."
+            default: op
+          iprotector.exempt.pvp:
+            description: "Allows access to pvp in iProtector areas."
+            default: op
+          iprotector.exempt.chest:
+            description: "Allows access to opening chests in iProtector areas."
+            default: op
