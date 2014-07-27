@@ -4,8 +4,8 @@ class Area {
   public function __construct($data) {
     $this->name = $data["name"];
     $this->flags = $data["flags"];
-    $this->pos1 = $data["pos1"];
-    $this->pos2 = $data["pos2"];
+    $this->pos1 = $data["pos"][0];
+    $this->pos2 = $data["pos"][1];
     $this->plugin = $data["plugin"];
     $this->plugin->registerArea($this);
   }
