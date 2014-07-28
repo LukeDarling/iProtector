@@ -24,7 +24,7 @@ class Area {
     return $value;
   }
   public function contains($ppos) {
-    if(($this->pos1->getX() <= $ppos->getX()) && ($this->pos2->getX() >= $ppos->getX()) && ($this->pos1->getY() <= $ppos->getY()) && ($this->pos2->getY() >= $ppos->getY()) && ($this->pos1->getZ() <= $ppos->getZ()) && ($this->pos2->getZ() >= $ppos->getZ())) {
+    if((min($this->pos1->getX(),$this->pos2->getX()) <= $ppos->getX()) && (max($this->pos1->getX(),$this->pos2->getX()) >= $ppos->getX()) && (min($this->pos1->getY(),$this->pos2->getY()) <= $ppos->getY()) && (max($this->pos1->getY(),$this->pos2->getY()) >= $ppos->getY()) && (min($this->pos1->getZ(),$this->pos2->getZ()) <= $ppos->getZ()) && (max($this->pos1->getZ(),$this->pos2->getZ()) >= $ppos->getZ())) {
       return true;
     } else {
       return false;
