@@ -3,12 +3,12 @@ namespace LDX\iProtector;
 use pocketmine\math\Vector3;
 class Area {
   public function __construct($data) {
-    $this->name = $data["name"];
+    $this->name = strtolower($data["name"]);
     $this->flags = $data["flags"];
     $this->pos1 = $data["pos"][0];
     $this->pos2 = $data["pos"][1];
     $this->plugin = $data["plugin"];
-    $this->plugin->registerArea($this);
+    $this->save();
   }
   public function getName() {
     return $this->name;
@@ -38,11 +38,12 @@ class Area {
     return array($this->pos1,$this->pos2);
   }
   public function getData() {
-    return array($this->name,$this->flags,$this->getPos());
+    return array("name" => $this->name,"flags" => $this->flags,"pos" => $this->getPos());
   }
   public function save() {
-    $name = strtolower($this->getName());
-    file_put_contents($this->plugin->getDataFolder() . "areas/$name.yml",yaml_emit($this->getData()));
+    $this->plugin->areas[$this->name] = $this;
+    $this->plugin->areadata[$this->name] = $this->getData();
+    $this->plugin->saveAreas();
   }
   public function delete() {
     $name = $this->getName();
