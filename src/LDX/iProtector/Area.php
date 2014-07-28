@@ -1,5 +1,6 @@
 <?php
 namespace LDX\iProtector;
+use pocketmine\math\Vector3;
 class Area {
   public function __construct($data) {
     $this->name = $data["name"];
@@ -21,6 +22,13 @@ class Area {
   public function setFlag($flag,$value) {
     $this->flags[$flag] = $value;
     return $value;
+  }
+  public function contains($ppos) {
+    if(($this->pos1->getX() <= $ppos->getX()) && ($this->pos2->getX() >= $ppos->getX()) && ($this->pos1->getY() <= $ppos->getY()) && ($this->pos2->getY() >= $ppos->getY()) && ($this->pos1->getZ() <= $ppos->getZ()) && ($this->pos2->getZ() >= $ppos->getZ())) {
+      return true;
+    } else {
+      return false;
+    }
   }
   public function toggleFlag($flag) {
     $this->flags[$flag] = !$this->flags[$flag];
