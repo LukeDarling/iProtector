@@ -1,19 +1,22 @@
 name: iProtector
 main: LDX\iProtector\Main
-version: Beta
+version: 1.0
 api: [1.1.0]
 load: POSTWORLD
 author: LDX
 commands:
   area:
     description: "Allows you to manage areas."
-    usage: "/area <pos1/pos2/create/flag/delete>"
+    usage: "/area <pos1/pos2/create/list/flag/delete>"
     permission: iprotector.command.area
 permissions:
   iprotector:
     description: "Allows access to all iProtector features."
     default: op
     children:
+      iprotector.access:
+        description: "Allows access to editing terrain in iProtector areas."
+        default: op
       iprotector.command:
         description: "Allows access to all iProtector commands."
         default: op
@@ -30,6 +33,9 @@ permissions:
                 default: op
               iprotector.command.area.create:
                 description: "Allows access to the iProtector create subcommand."
+                default: op
+              iprotector.command.area.list:
+                description: "Allows access to the iProtector list subcommand."
                 default: op
               iprotector.command.area.flag:
                 description: "Allows access to the iProtector flag subcommand."
