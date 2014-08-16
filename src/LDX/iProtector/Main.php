@@ -168,6 +168,27 @@ class Main extends PluginBase implements CommandExecutor, Listener {
     }
   }
   /**
+  * @param EntityDamageByEntityEvent $event
+  *
+  * @priority HIGHEST
+  * @ignoreCancelled true
+  */
+  public function onHurtByEntity(EntityDamageByEntityEvent $event) {
+    if($event->getEntity() instanceof Player) {
+      $p = $event->getEntity();
+      $cancel = false;
+      $pos = new Vector3($p->getX(),$p->getY(),$p->getZ());
+      foreach($this->areas as $area) {
+        if($area->contains($pos) && $area->getFlag("god")) {
+          $cancel = true;
+        }
+      }
+      if($cancel) {
+        $event->setCancelled();
+      }
+    }
+  }
+  /**
   * @param BlockBreakEvent $event
   *
   * @priority HIGHEST
