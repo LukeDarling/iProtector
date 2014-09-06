@@ -9,7 +9,6 @@ class Area {
     $this->pos2 = new Vector3($data["pos2"][0],$data["pos2"][1],$data["pos2"][2]);
     $this->plugin = $plugin;
     $this->save();
-    $this->plugin->saveAreas();
   }
   public function getName() {
     return $this->name;
@@ -52,6 +51,5 @@ class Area {
     unset($this->plugin->areadata[$name]);
     $this->plugin->saveAreas();
   }
-  public function __destruct() { }
 }
 ?>
