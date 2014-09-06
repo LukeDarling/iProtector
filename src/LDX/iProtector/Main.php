@@ -9,10 +9,9 @@ use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat as Color;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\block\BlockBreakEvent;
-class Main extends PluginBase implements CommandExecutor, Listener {
+class Main extends PluginBase implements Listener {
   public function onEnable() {
     $this->getServer()->getPluginManager()->registerEvents($this,$this);
     @mkdir($this->getDataFolder());
@@ -58,6 +57,7 @@ class Main extends PluginBase implements CommandExecutor, Listener {
             if(isset($this->pos1[$n]) && isset($this->pos2[$n])) {
               if(!isset($this->areas[strtolower($args[1])])) {
                 $area = new Area(array("name" => strtolower($args[1]),"flags" => array("edit" => true,"god" => false,"chest" => false),"pos1" => array($this->pos1[$n]->getX(),$this->pos1[$n]->getY(),$this->pos1[$n]->getZ()),"pos2" => array($this->pos2[$n]->getX(),$this->pos2[$n]->getY(),$this->pos2[$n]->getZ())),$this);
+                $this->saveAreas();
                 unset($this->pos1[$n]);
                 unset($this->pos2[$n]);
                 $o = "Area created!";
@@ -169,27 +169,6 @@ class Main extends PluginBase implements CommandExecutor, Listener {
     }
   }
   /**
-  * @param EntityDamageByEntityEvent $event
-  *
-  * @priority HIGHEST
-  * @ignoreCancelled true
-  */
-  public function onHurtByEntity(EntityDamageByEntityEvent $event) {
-    if($event->getEntity() instanceof Player) {
-      $p = $event->getEntity();
-      $cancel = false;
-      $pos = new Vector3($p->getX(),$p->getY(),$p->getZ());
-      foreach($this->areas as $area) {
-        if($area->contains($pos) && $area->getFlag("god")) {
-          $cancel = true;
-        }
-      }
-      if($cancel) {
-        $event->setCancelled();
-      }
-    }
-  }
-  /**
   * @param BlockBreakEvent $event
   *
   * @priority HIGHEST
@@ -231,9 +210,6 @@ class Main extends PluginBase implements CommandExecutor, Listener {
   }
   public function saveAreas() {
     file_put_contents($this->getDataFolder() . "areas.dat",yaml_emit($this->areadata));
-  }
-  public function onDisable() {
-    $this->saveAreas();
   }
 }
 ?>
