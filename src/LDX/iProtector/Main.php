@@ -37,7 +37,7 @@ class Main extends PluginBase implements Listener {
     switch($action) {
       case "pos1":
         if($p->hasPermission("iprotector") || $p->hasPermission("iprotector.command") || $p->hasPermission("iprotector.command.area") || $p->hasPermission("iprotector.command.area.pos1")) {
-          $this->pos1[$n] = new Vector3(round($p->getX()),round($p->getY()),round($p->getZ()));
+          $this->pos1[$n] = new Vector3(round($p->getX() + 0.5),round($p->getY()),round($p->getZ() + 0.5));
           $o = "Position 1 set to: (" . $this->pos1[$n]->getX() . "," . $this->pos1[$n]->getY() . "," . $this->pos1[$n]->getZ() . ")";
         } else {
           $o = "You do not have permission to use this subcommand.";
@@ -45,7 +45,7 @@ class Main extends PluginBase implements Listener {
       break;
       case "pos2":
         if($p->hasPermission("iprotector") || $p->hasPermission("iprotector.command") || $p->hasPermission("iprotector.command.area") || $p->hasPermission("iprotector.command.area.pos2")) {
-          $this->pos2[$n] = new Vector3(round($p->getX()),round($p->getY()),round($p->getZ()));
+          $this->pos2[$n] = new Vector3(round($p->getX() + 0.5),round($p->getY()),round($p->getZ() + 0.5));
           $o = "Position 2 set to: (" . $this->pos2[$n]->getX() . "," . $this->pos2[$n]->getY() . "," . $this->pos2[$n]->getZ() . ")";
         } else {
           $o = "You do not have permission to use this subcommand.";
@@ -147,12 +147,6 @@ class Main extends PluginBase implements Listener {
     $p->sendMessage($o);
     return true;
   }
-  /**
-  * @param EntityDamageEvent $event
-  *
-  * @priority HIGHEST
-  * @ignoreCancelled true
-  */
   public function onHurt(EntityDamageEvent $event) {
     if($event->getEntity() instanceof Player) {
       $p = $event->getEntity();
@@ -168,12 +162,6 @@ class Main extends PluginBase implements Listener {
       }
     }
   }
-  /**
-  * @param BlockBreakEvent $event
-  *
-  * @priority HIGHEST
-  * @ignoreCancelled true
-  */
   public function onBlockBreak(BlockBreakEvent $event) {
     $b = $event->getBlock();
     $p = $event->getPlayer();
@@ -188,12 +176,6 @@ class Main extends PluginBase implements Listener {
       $event->setCancelled();
     }
   }
-  /**
-  * @param BlockPlaceEvent $event
-  *
-  * @priority HIGHEST
-  * @ignoreCancelled true
-  */
   public function onBlockPlace(BlockPlaceEvent $event) {
     $b = $event->getBlock();
     $p = $event->getPlayer();
