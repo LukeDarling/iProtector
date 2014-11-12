@@ -1,9 +1,9 @@
 name: iProtector
 main: LDX\iProtector\Main
 author: LDX
-version: "1.3"
+version: "2.0"
 load: POSTWORLD
-api: [1.4.1]
+api: [1.6.0]
 commands:
   area:
     description: "Allows you to manage areas."
@@ -12,14 +12,14 @@ commands:
 permissions:
   iprotector:
     description: "Allows access to all iProtector features."
-    default: op
+    default: false
     children:
       iprotector.access:
         description: "Allows access to editing terrain in iProtector areas."
         default: op
       iprotector.command:
         description: "Allows access to all iProtector commands."
-        default: op
+        default: false
         children:
           iprotector.command.area:
             description: "Allows access to the area command."
