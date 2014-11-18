@@ -15,7 +15,7 @@ Default:
 # Settings for individual worlds:
 Worlds:
 
-  world:
+  {DEFAULT}:
 
     # Keep players from getting hurt?
     God: false
