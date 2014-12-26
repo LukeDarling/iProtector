@@ -1,9 +1,9 @@
-name: iProtector
+name: "iProtector"
+author: "Luke Darling"
+version: "2.1"
 main: LDX\iProtector\Main
-author: LDX
-version: "2.0"
 load: POSTWORLD
-api: [1.6.0]
+api: [1.9.0]
 commands:
   area:
     description: "Allows you to manage areas."
