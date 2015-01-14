@@ -19,27 +19,28 @@ class Main extends PluginBase implements Listener {
 
   public function onEnable() {
     $this->getServer()->getPluginManager()->registerEvents($this,$this);
+    
+    if(!file_exists($this->getDataFolder())){
+      mkdir($this->getDataFolder());
+    }
+    
     if(!file_exists($this->getDataFolder() . "areas.json")) {
-      if(!is_dir($this->getDataFolder())) {
-        mkdir($this->getDataFolder());
-      }
       file_put_contents($this->getDataFolder() . "areas.json","[]");
     }
+    
     if(!file_exists($this->getDataFolder() . "config.yml")) {
-      if(!is_dir($this->getDataFolder())) {
-        mkdir($this->getDataFolder());
-      }
       $c = $this->getResource("config.yml");
-      $o = fread($c,1048576);
+      $o = stream_get_contents($c);
       fclose($c);
-      file_put_contents($this->getDataFolder() . "config.yml",str_replace("{DEFAULT}",$this->getServer()->getDefaultLevel()->getName(),$o));
+      file_put_contents($this->getDataFolder() . "config.yml", str_replace("{DEFAULT}", $this->getServer()->getDefaultLevel()->getName(), $o));
     }
+    
     $this->areas = array();
     $data = json_decode(file_get_contents($this->getDataFolder() . "areas.json"),true);
     foreach($data as $datum) {
       $area = new Area($datum["name"],$datum["flags"],$datum["pos1"],$datum["pos2"],$datum["level"],$this);
     }
-    $c = yaml_parse(file_get_contents($this->getDataFolder() . "config.yml"));
+    $c = $this->getConfig()->getAll();
     $this->god = $c["Default"]["God"];
     $this->edit = $c["Default"]["Edit"];
     $this->touch = $c["Default"]["Touch"];
