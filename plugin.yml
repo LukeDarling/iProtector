@@ -1,5 +1,5 @@
-name: "iProtector"
-author: "Luke Darling"
+name: iProtector
+author: LDX
 version: "2.1"
 main: LDX\iProtector\Main
 load: POSTWORLD
