@@ -19,22 +19,18 @@ class Main extends PluginBase implements Listener {
 
   public function onEnable() {
     $this->getServer()->getPluginManager()->registerEvents($this,$this);
-    
-    if(!file_exists($this->getDataFolder())){
+    if(!is_dir($this->getDataFolder())) {
       mkdir($this->getDataFolder());
     }
-    
     if(!file_exists($this->getDataFolder() . "areas.json")) {
       file_put_contents($this->getDataFolder() . "areas.json","[]");
     }
-    
     if(!file_exists($this->getDataFolder() . "config.yml")) {
       $c = $this->getResource("config.yml");
       $o = stream_get_contents($c);
       fclose($c);
-      file_put_contents($this->getDataFolder() . "config.yml", str_replace("{DEFAULT}", $this->getServer()->getDefaultLevel()->getName(), $o));
+      file_put_contents($this->getDataFolder() . "config.yml",str_replace("{DEFAULT}",$this->getServer()->getDefaultLevel()->getName(),$o));
     }
-    
     $this->areas = array();
     $data = json_decode(file_get_contents($this->getDataFolder() . "areas.json"),true);
     foreach($data as $datum) {
@@ -90,7 +86,7 @@ class Main extends PluginBase implements Listener {
           if(isset($args[1])) {
             if(isset($this->pos1[$n]) && isset($this->pos2[$n])) {
               if(!isset($this->areas[strtolower($args[1])])) {
-                $area = new Area(array("name" => strtolower($args[1]),"flags" => array("edit" => true,"god" => false,"touch" => false),"pos1" => array($this->pos1[$n]->getX(),$this->pos1[$n]->getY(),$this->pos1[$n]->getZ()),"pos2" => array($this->pos2[$n]->getX(),$this->pos2[$n]->getY(),$this->pos2[$n]->getZ())),$this);
+                $area = new Area(strtolower($args[1]),array("edit" => true,"god" => false,"touch" => true),array($this->pos1[$n]->getX(),$this->pos1[$n]->getY(),$this->pos1[$n]->getZ()),array($this->pos2[$n]->getX(),$this->pos2[$n]->getY(),$this->pos2[$n]->getZ()),$p->getLevel()->getName(),$this);
                 $this->saveAreas();
                 unset($this->pos1[$n]);
                 unset($this->pos2[$n]);
@@ -142,10 +138,10 @@ class Main extends PluginBase implements Listener {
                   }
                   $o = "Flag " . $flag . " set to " . $status . " for area " . $area->getName() . "!";
                 } else {
-                  $o = "Flag not found. (Flags: edit, god)";
+                  $o = "Flag not found. (Flags: edit, god, touch)";
                 }
               } else {
-                $o = "Please specify a flag. (Flags: god, edit, touch)";
+                $o = "Please specify a flag. (Flags: edit, god, touch)";
               }
             } else {
               $o = "Area doesn't exist.";
@@ -185,19 +181,15 @@ class Main extends PluginBase implements Listener {
   public function onHurt(EntityDamageEvent $event) {
     if($event->getEntity() instanceof Player) {
       $p = $event->getEntity();
-      $cancel = false;
-      $pos = new Vector3($p->getX(),$p->getY(),$p->getZ());
+      $x = false;
+      $pos = new Vector3($p->x,$p->y,$p->z);
       foreach($this->areas as $area) {
-        if($area->contains($pos,$p->getLevel()->getName()) && $area->getFlag("god")) {
-          $cancel = true;
+        if($area->getFlag("god") && $area->contains($pos,$p->getLevel()->getName())) {
+          $x = true;
         }
       }
-      if($cancel) {
+      if($x || (isset($this->levels[$p->getLevel()->getName()]) ? $this->levels[$p->getLevel()->getName()]["God"] : $this->edit)) {
         $event->setCancelled();
-      } else {
-        if((isset($this->levels[$p->getLevel()->getName()]) ? $this->levels[$p->getLevel()->getName()]["God"] : $this->god)) {
-          $event->setCancelled();
-        }
       }
     }
   }
@@ -206,7 +198,6 @@ class Main extends PluginBase implements Listener {
     $b = $event->getBlock();
     $p = $event->getPlayer();
     $n = strtolower($p->getName());
-    $cancel = false;
     if(isset($this->sel1[$n])) {
       unset($this->sel1[$n]);
       $this->pos1[$n] = new Vector3($b->getX(),$b->getY(),$b->getZ());
@@ -218,16 +209,15 @@ class Main extends PluginBase implements Listener {
       $p->sendMessage("Position 2 set to: (" . $this->pos2[$n]->getX() . ", " . $this->pos2[$n]->getY() . ", " . $this->pos2[$n]->getZ() . ")");
       $event->setCancelled();
     } else {
+      $x = false;
       $pos = new Vector3($b->x,$b->y,$b->z);
       foreach($this->areas as $area) {
-        if($area->contains($pos,$b->getLevel()->getName()) && $area->getFlag("edit") && !($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
-          $cancel = true;
+        if($area->getFlag("edit") && $area->contains($pos,$b->getLevel()->getName())) {
+          $x = true;
         }
       }
-      if($cancel) {
-        $event->setCancelled();
-      } else {
-        if((isset($this->levels[$b->getLevel()->getName()]) ? $this->levels[$b->getLevel()->getName()]["Edit"] : $this->edit) && !($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
+      if($x || (isset($this->levels[$b->getLevel()->getName()]) ? $this->levels[$b->getLevel()->getName()]["Edit"] : $this->edit)) {
+        if(!($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
           $event->setCancelled();
         }
       }
@@ -238,7 +228,6 @@ class Main extends PluginBase implements Listener {
     $b = $event->getBlock();
     $p = $event->getPlayer();
     $n = strtolower($p->getName());
-    $cancel = false;
     if(isset($this->sel1[$n])) {
       unset($this->sel1[$n]);
       $this->pos1[$n] = new Vector3($b->getX(),$b->getY(),$b->getZ());
@@ -250,16 +239,15 @@ class Main extends PluginBase implements Listener {
       $p->sendMessage("Position 2 set to: (" . $this->pos2[$n]->getX() . ", " . $this->pos2[$n]->getY() . ", " . $this->pos2[$n]->getZ() . ")");
       $event->setCancelled();
     } else {
+      $x = false;
       $pos = new Vector3($b->x,$b->y,$b->z);
       foreach($this->areas as $area) {
-        if($area->contains($pos,$b->getLevel()->getName()) && $area->getFlag("edit") && !($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
-          $cancel = true;
+        if($area->getFlag("edit") && $area->contains($pos,$b->getLevel()->getName())) {
+          $x = true;
         }
       }
-      if($cancel) {
-        $event->setCancelled();
-      } else {
-        if((isset($this->levels[$b->getLevel()->getName()]) ? $this->levels[$b->getLevel()->getName()]["Edit"] : $this->edit) && !($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
+      if($x || (isset($this->levels[$b->getLevel()->getName()]) ? $this->levels[$b->getLevel()->getName()]["Edit"] : $this->edit)) {
+        if(!($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
           $event->setCancelled();
         }
       }
@@ -269,26 +257,26 @@ class Main extends PluginBase implements Listener {
   public function onBlockTouch(PlayerInteractEvent $event) {
     $b = $event->getBlock();
     $p = $event->getPlayer();
-    $cancel = false;
+    $x = false;
     $pos = new Vector3($b->x,$b->y,$b->z);
     foreach($this->areas as $area) {
-      if($area->contains($pos,$b->getLevel()->getName()) && $area->getFlag("touch") && !($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
-        $cancel = true;
-      } else if($area->contains($pos) && $area->getFlag("touch") == false) {
-        $allow = true;
+      if($area->getFlag("edit") && $area->contains($pos,$b->getLevel()->getName())) {
+        $x = true;
       }
     }
-    if($cancel) {
-      $event->setCancelled();
-    } else {
-      if((isset($this->levels[$b->getLevel()->getName()]) ? $this->levels[$b->getLevel()->getName()]["Edit"] : $this->edit) && !($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
+    if($x || (isset($this->levels[$b->getLevel()->getName()]) ? $this->levels[$b->getLevel()->getName()]["Edit"] : $this->edit)) {
+      if(!($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
         $event->setCancelled();
       }
     }
   }
 
   public function saveAreas() {
-    file_put_contents($this->getDataFolder() . "areas.json",json_encode($this->areadata));
+    $areas = array();
+    foreach($this->areas as $area) {
+      $areas[] = array("name" => $area->getName(),"flags" => $area->getFlags(),"pos1" => $area->getPos1(),"pos2" => $area->getPos2(),"level" => $area->getLevel());
+    }
+    file_put_contents($this->getDataFolder() . "areas.json",json_encode($areas));
   }
 
 }
