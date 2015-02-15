@@ -34,7 +34,7 @@ class Main extends PluginBase implements Listener {
     $this->areas = array();
     $data = json_decode(file_get_contents($this->getDataFolder() . "areas.json"),true);
     foreach($data as $datum) {
-      $area = new Area($datum["name"],$datum["flags"],$datum["pos1"],$datum["pos2"],$datum["level"],$this);
+      $area = new Area($datum["name"],$datum["flags"],$datum["pos1"],$datum["pos2"],$datum["level"],$datum["whitelist"],$this);
     }
     $c = $this->getConfig()->getAll();
     $this->god = $c["Default"]["God"];
@@ -86,7 +86,7 @@ class Main extends PluginBase implements Listener {
           if(isset($args[1])) {
             if(isset($this->pos1[$n]) && isset($this->pos2[$n])) {
               if(!isset($this->areas[strtolower($args[1])])) {
-                $area = new Area(strtolower($args[1]),array("edit" => true,"god" => false,"touch" => true),array($this->pos1[$n]->getX(),$this->pos1[$n]->getY(),$this->pos1[$n]->getZ()),array($this->pos2[$n]->getX(),$this->pos2[$n]->getY(),$this->pos2[$n]->getZ()),$p->getLevel()->getName(),$this);
+                $area = new Area(strtolower($args[1]),array("edit" => true,"god" => false,"touch" => true),array($this->pos1[$n]->getX(),$this->pos1[$n]->getY(),$this->pos1[$n]->getZ()),array($this->pos2[$n]->getX(),$this->pos2[$n]->getY(),$this->pos2[$n]->getZ()),$p->getLevel()->getName(),array($n),$this);
                 $this->saveAreas();
                 unset($this->pos1[$n]);
                 unset($this->pos2[$n]);
@@ -122,7 +122,7 @@ class Main extends PluginBase implements Listener {
                   $flag = strtolower($args[2]);
                   if(isset($args[3])) {
                     $mode = strtolower($args[3]);
-                    if($mode == ("true" || "on")) {
+                    if($mode == "true" || $mode == "on") {
                       $mode = true;
                     } else {
                       $mode = false;
@@ -170,6 +170,52 @@ class Main extends PluginBase implements Listener {
           $o = "You do not have permission to use this subcommand.";
         }
       break;
+      case "whitelist":
+        if($p->hasPermission("iprotector") || $p->hasPermission("iprotector.command") || $p->hasPermission("iprotector.command.area") || $p->hasPermission("iprotector.command.area.delete")) {
+          if(isset($args[1]) && isset($this->areas[strtolower($args[1])])) {
+            $area = $this->areas[strtolower($args[1])];
+            if(isset($args[2])) {
+              $action = strtolower($args[2]);
+              switch($action) {
+                case "add":
+                  $w = ($this->getServer()->getPlayer($args[3]) instanceof Player ? strtolower($this->getServer()->getPlayer($args[3])->getName()) : strtolower($args[3]));
+                  if(!$area->isWhitelisted($w)) {
+                    $area->setWhitelisted($w);
+                    $o = "Player $w has been whitelisted in area " . $area->getName() . ".";
+                  } else {
+                    $o = "Player $w is already whitelisted in area " . $area->getName() . ".";
+                  }
+                break;
+                case "list":
+                  $o = "Area " . $area->getName() . "'s whitelist:";
+                  foreach($area->getWhitelist() as $w) {
+                    $o .= " $w;";
+                  }
+                break;
+                case "delete":
+                case "remove":
+                  $w = ($this->getServer()->getPlayer($args[3]) instanceof Player ? strtolower($this->getServer()->getPlayer($args[3])->getName()) : strtolower($args[3]));
+                  if($area->isWhitelisted($w)) {
+                    $area->setWhitelisted($w,false);
+                    $o = "Player $w has been unwhitelisted in area " . $area->getName() . ".";
+                  } else {
+                    $o = "Player $w is already unwhitelisted in area " . $area->getName() . ".";
+                  }
+                break;
+                default:
+                  $o = "Please specify a valid action. Usage: /area whitelist " . $area->getName() . " <add/list/remove> [player]";
+                break;
+              }
+            } else {
+              $o = "Please specify an action. Usage: /area whitelist " . $area->getName() . " <add/list/remove> [player]";
+            }
+          } else {
+            $o = "Area doesn't exist. Usage: /area whitelist <area> <add/list/remove> [player]";
+          }
+        } else {
+          $o = "You do not have permission to use this subcommand.";
+        }
+      break;
       default:
         return false;
       break;
@@ -182,13 +228,7 @@ class Main extends PluginBase implements Listener {
     if($event->getEntity() instanceof Player) {
       $p = $event->getEntity();
       $x = false;
-      $pos = new Vector3($p->x,$p->y,$p->z);
-      foreach($this->areas as $area) {
-        if($area->getFlag("god") && $area->contains($pos,$p->getLevel()->getName())) {
-          $x = true;
-        }
-      }
-      if($x || (isset($this->levels[$p->getLevel()->getName()]) ? $this->levels[$p->getLevel()->getName()]["God"] : $this->edit)) {
+      if(!$this->canGetHurt($p)) {
         $event->setCancelled();
       }
     }
@@ -209,17 +249,8 @@ class Main extends PluginBase implements Listener {
       $p->sendMessage("Position 2 set to: (" . $this->pos2[$n]->getX() . ", " . $this->pos2[$n]->getY() . ", " . $this->pos2[$n]->getZ() . ")");
       $event->setCancelled();
     } else {
-      $x = false;
-      $pos = new Vector3($b->x,$b->y,$b->z);
-      foreach($this->areas as $area) {
-        if($area->getFlag("edit") && $area->contains($pos,$b->getLevel()->getName())) {
-          $x = true;
-        }
-      }
-      if($x || (isset($this->levels[$b->getLevel()->getName()]) ? $this->levels[$b->getLevel()->getName()]["Edit"] : $this->edit)) {
-        if(!($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
-          $event->setCancelled();
-        }
+      if(!$this->canEdit($p,$b)) {
+        $event->setCancelled();
       }
     }
   }
@@ -239,17 +270,8 @@ class Main extends PluginBase implements Listener {
       $p->sendMessage("Position 2 set to: (" . $this->pos2[$n]->getX() . ", " . $this->pos2[$n]->getY() . ", " . $this->pos2[$n]->getZ() . ")");
       $event->setCancelled();
     } else {
-      $x = false;
-      $pos = new Vector3($b->x,$b->y,$b->z);
-      foreach($this->areas as $area) {
-        if($area->getFlag("edit") && $area->contains($pos,$b->getLevel()->getName())) {
-          $x = true;
-        }
-      }
-      if($x || (isset($this->levels[$b->getLevel()->getName()]) ? $this->levels[$b->getLevel()->getName()]["Edit"] : $this->edit)) {
-        if(!($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
-          $event->setCancelled();
-        }
+      if(!$this->canEdit($p,$b)) {
+        $event->setCancelled();
       }
     }
   }
@@ -257,26 +279,91 @@ class Main extends PluginBase implements Listener {
   public function onBlockTouch(PlayerInteractEvent $event) {
     $b = $event->getBlock();
     $p = $event->getPlayer();
-    $x = false;
-    $pos = new Vector3($b->x,$b->y,$b->z);
-    foreach($this->areas as $area) {
-      if($area->getFlag("edit") && $area->contains($pos,$b->getLevel()->getName())) {
-        $x = true;
-      }
-    }
-    if($x || (isset($this->levels[$b->getLevel()->getName()]) ? $this->levels[$b->getLevel()->getName()]["Edit"] : $this->edit)) {
-      if(!($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access"))) {
-        $event->setCancelled();
-      }
+    if(!$this->canTouch($p,$b)) {
+      $event->setCancelled();
     }
   }
 
   public function saveAreas() {
     $areas = array();
     foreach($this->areas as $area) {
-      $areas[] = array("name" => $area->getName(),"flags" => $area->getFlags(),"pos1" => $area->getPos1(),"pos2" => $area->getPos2(),"level" => $area->getLevel());
+      $areas[] = array("name" => $area->getName(),"flags" => $area->getFlags(),"pos1" => $area->getPos1(),"pos2" => $area->getPos2(),"level" => $area->getLevel(),"whitelist" => $area->getWhitelist());
     }
     file_put_contents($this->getDataFolder() . "areas.json",json_encode($areas));
+  }
+
+  public function canEdit($p,$t) {
+    if($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access")) {
+      return true;
+    }
+    $o = true;
+    $g = (isset($this->levels[$t->getLevel()->getName()]) ? $this->levels[$t->getLevel()->getName()]["Edit"] : $this->edit);
+    if($g) {
+      $o = false;
+    }
+    foreach($this->areas as $area) {
+      if($area->contains(new Vector3($t->getX(),$t->getY(),$t->getZ()),$t->getLevel()->getName())) {
+        if($area->getFlag("edit")) {
+          $o = false;
+        }
+        if($area->isWhitelisted(strtolower($p->getName()))) {
+          $o = true;
+          break;
+        }
+        if(!$area->getFlag("edit") && $g) {
+          $o = true;
+          break;
+        }
+      }
+    }
+    return $o;
+  }
+
+  public function canTouch($p,$t) {
+    if($p->hasPermission("iprotector") || $p->hasPermission("iprotector.access")) {
+      return true;
+    }
+    $o = true;
+    $g = (isset($this->levels[$t->getLevel()->getName()]) ? $this->levels[$t->getLevel()->getName()]["Touch"] : $this->touch);
+    if($g) {
+      $o = false;
+    }
+    foreach($this->areas as $area) {
+      if($area->contains(new Vector3($t->getX(),$t->getY(),$t->getZ()),$t->getLevel()->getName())) {
+        if($area->getFlag("touch")) {
+          $o = false;
+        }
+        if($area->isWhitelisted(strtolower($p->getName()))) {
+          $o = true;
+          break;
+        }
+        if(!$area->getFlag("touch") && $g) {
+          $o = true;
+          break;
+        }
+      }
+    }
+    return $o;
+  }
+
+  public function canGetHurt($p) {
+    $o = true;
+    $g = (isset($this->levels[$p->getLevel()->getName()]) ? $this->levels[$p->getLevel()->getName()]["God"] : $this->god);
+    if($g) {
+      $o = false;
+    }
+    foreach($this->areas as $area) {
+      if($area->contains(new Vector3($p->getX(),$p->getY(),$p->getZ()),$p->getLevel()->getName())) {
+        if(!$area->getFlag("god") && $g) {
+          $o = true;
+          break;
+        }
+        if($area->getFlag("god")) {
+          $o = false;
+        }
+      }
+    }
+    return $o;
   }
 
 }
