@@ -4,6 +4,7 @@ version: "3.0"
 main: LDX\iProtector\Main
 load: POSTWORLD
 api: [1.9.0]
+website: https://github.com/LDX-MCPE/iProtector
 commands:
   area:
     description: "Allows you to manage areas."
