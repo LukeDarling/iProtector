@@ -12,10 +12,10 @@ Default:
   # Keep players from touching blocks and activating things like chests?
   Touch: false
 
-# Settings for individual worlds:
+# Settings for unprotected areas in individual worlds:
 Worlds:
 
-  {DEFAULT}:
+  DEFAULT:
 
     # Keep players from getting hurt?
     God: false
