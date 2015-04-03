@@ -26,9 +26,9 @@ class Main extends PluginBase implements Listener {
       file_put_contents($this->getDataFolder() . "areas.json","[]");
     }
     if(!file_exists($this->getDataFolder() . "config.yml")) {
-      $oc = $this->getResource("config.yml");
-      $o = stream_get_contents($oc);
-      fclose($oc);
+      $c = $this->getResource("config.yml");
+      $o = stream_get_contents($c);
+      fclose($c);
       file_put_contents($this->getDataFolder() . "config.yml",str_replace("DEFAULT",$this->getServer()->getDefaultLevel()->getName(),$o));
     }
     $this->areas = array();
@@ -44,7 +44,6 @@ class Main extends PluginBase implements Listener {
     foreach($c["Worlds"] as $level => $flags) {
       $this->levels[$level] = $flags;
     }
-    print_r($c);
   }
 
   public function onCommand(CommandSender $p,Command $cmd,$label,array $args) {
@@ -368,4 +367,3 @@ class Main extends PluginBase implements Listener {
   }
 
 }
-?>
