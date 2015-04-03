@@ -1,10 +1,10 @@
 name: iProtector
 author: LDX
-version: "3.0"
+version: 3.1a
 main: LDX\iProtector\Main
 load: POSTWORLD
 api: [1.9.0]
-website: https://github.com/LDX-MCPE/iProtector
+website: "https://github.com/LDX-MCPE/iProtector"
 commands:
   area:
     description: "Allows you to manage areas."
